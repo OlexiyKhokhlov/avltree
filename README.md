@@ -33,10 +33,17 @@ func main() {
     //Inserting
     tree.Insert(2, "this is value for key 2")
     tree.Insert(22, "this is value for key 22")
-    
+
     //Tree info
-    tree.Empty()
-    tree.Count()
+    tree.Empty() //returns false
+    tree.Count() //returns 2
+    
+    //Get values 
+    tree.Contains(3) //returns false
+    tree.Contains(2) //returns true
+    tree.Find(2)     //returns interface{} for string that has been inserted 
+    tree.Find(22)    //returns interface{} for string that has been inserted
+    tree.Find(33)    //returns nil 
 
     //Erasing
     tree.Erase(2)
@@ -45,7 +52,7 @@ func main() {
 ```
 
 ## Implementations details
- - Every node has only two pinters
+ - Every node has only two pointers
  - Insert and Erase methods aren't recursive
 
 ## TODO
