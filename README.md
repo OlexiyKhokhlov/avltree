@@ -17,7 +17,7 @@ func main() {
     //Tree creation.
     //You have to pass into NewAVLTree a Key comparator function
     //Example uses int comparator. So Key type is int here
-    tree := NewAVLTree(func(a interface{}, b interface{}) int {
+    tree := avltree.NewAVLTree(func(a interface{}, b interface{}) int {
 	first := a.(int)
 	second := b.(int)
 
