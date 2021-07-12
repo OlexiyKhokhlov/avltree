@@ -1,6 +1,10 @@
 package avltree
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func abs(x int) int {
 	if x < 0 {
@@ -13,6 +17,8 @@ const MIN = -1000
 const MAX = 1000
 
 func TestCreateAVLTree(t *testing.T) {
+	require := require.New(t)
+
 	empty_tree := NewAVLTree(func(a interface{}, b interface{}) int {
 		first := a.(int)
 		second := b.(int)
@@ -26,110 +32,63 @@ func TestCreateAVLTree(t *testing.T) {
 		return 1
 	})
 
-	if size := empty_tree.Size(); size != 0 {
-		t.Error("Expected Size 0, got ", size)
-	}
-
-	if empty := empty_tree.Empty(); !empty {
-		t.Error("Expected Empty true, got ", empty)
-	}
+	require.Equal(empty_tree.Size(), uint(0))
+	require.True(empty_tree.Empty())
 }
 
 func eraseAVLTree(tree *AVLTree, t *testing.T) {
+	require := require.New(t)
+
 	var size uint = tree.Size()
 	for i := MIN; i <= MAX; i++ {
-		if !tree.Contains(i) {
-			t.Error("Tree hasn't got ", i)
-		}
-		if tree.Erase(i) != nil {
-			t.Error("Can't erase ", i)
-			break
-		}
-		if tree.Contains(i) {
-			t.Error("Key wasn't removed ", i)
-			break
-		}
-		if tree.Erase(i) == nil {
-			t.Error("Tree hasn't got a key but it has been removed ", i)
-			break
-		}
+		require.True(tree.Contains(i))
+		require.Nil(tree.Erase(i))
+		require.False(tree.Contains(i))
+		require.Error(tree.Erase(i))
+
 		size--
-		if tree.Size() != size {
-			t.Error(
-				"expected size ", size,
-				"got ", tree.Size(),
-			)
-			break
-		}
+		require.Equal(tree.Size(), size)
 
 		tree.CheckHeight(func(hl int, hr int) {
-			if abs(hl-hr) > 1 {
-				t.Error("Tree isn't balanced after inserting of ", i)
-			}
+			require.LessOrEqual(abs(hl-hr), 1)
 		})
 	}
 }
 
 func containsAVLTRee(tree *AVLTree, t *testing.T) {
-	if tree.Contains(MIN - 1) {
-		t.Error("Tree unexpectedly contains ", MIN-1)
-	}
-	if tree.Contains(MAX + 1) {
-		t.Error("Tree unexpectedly contains ", MAX+1)
-	}
-	if tree.Contains(MAX * 2) {
-		t.Error("Tree unexpectedly contains ", MAX*2)
-	}
-	if tree.Contains(MIN * 2) {
-		t.Error("Tree unexpectedly contains ", MIN*2)
-	}
+	require := require.New(t)
+	require.False(tree.Contains(MIN - 1))
+	require.False(tree.Contains(MAX + 1))
+	require.False(tree.Contains(MIN * 2))
+	require.False(tree.Contains(MAX * 2))
+
 	for i := MIN; i <= MAX; i++ {
-		if !tree.Contains(i) {
-			t.Error("Tree hasn't got ", i)
-		}
+		require.True(tree.Contains(i))
 	}
 
 }
 
 func insertAVLTree(tree *AVLTree, t *testing.T) {
+	require := require.New(t)
+
 	var size uint = 0
 	for i := MIN; i <= MAX; i++ {
-		if tree.Contains(i) {
-			t.Error("Tree unexpectedly contains ", i)
-		}
-		if tree.Insert(i, 0) != nil {
-			t.Error("Can't insert ", i)
-			break
-		}
-		if tree.Insert(i, 0) == nil {
-			t.Error("Duplicate insertion must be not allowed for ", i)
-			break
-		}
-		if !tree.Contains(i) {
-			t.Error("Tree hasn't got a key that has been inserted right now. ", i)
-			break
-		}
+		require.False(tree.Contains(i))
+		require.Nil(tree.Insert(i, 0))
+		require.Error(tree.Insert(i, 0))
+		require.True(tree.Contains(i))
 		size++
-		if tree.Size() != size {
-			t.Error(
-				"expected size ", size,
-				"got ", tree.Size(),
-			)
-			break
-		}
+		require.Equal(tree.Size(), size)
 
 		tree.CheckHeight(func(hl int, hr int) {
-			if abs(hl-hr) > 1 {
-				t.Error("Tree isn't balanced after inserting of ", i)
-			}
+			require.LessOrEqual(abs(hl-hr), 1)
 		})
 	}
 }
 
 func TestInsertErase(t *testing.T) {
-	if MIN >= MAX {
-		t.Error("WRONG MIN - MAX diapason")
-	}
+	require := require.New(t)
+	require.Less(MIN, MAX)
 
 	tree := NewAVLTree(func(a interface{}, b interface{}) int {
 		first := a.(int)
@@ -143,6 +102,7 @@ func TestInsertErase(t *testing.T) {
 		}
 		return 1
 	})
+
 	insertAVLTree(tree, t)
 	containsAVLTRee(tree, t)
 	eraseAVLTree(tree, t)
