@@ -1,8 +1,18 @@
 # avltree
-This is AVL Tree implementations.
+Go maps are hash based. They have a good performance for the searching but don't provide any possibility to arange keys in the order.
+Also hash-maps are hungry for the memory usage.
+AVL tree's aren't so extremely fast in searching but they aren't so hungry for memory usage.
+Also AVL tree's can provide a possibility to get map contens be ascending or by descending. 
 
 ## Installation
+Like any other Go package just call
+
 `$ go get github.com/OlexiyKhokhlov/avltree`
+
+## Notes
+Go is very simple language so it has any protection for dummy developer.
+I can't write a code that blocks any possibility to change a key that is already inserted in AVLTree.
+You must don't do that! It provides broken AVL balancing!
 
 ## How to use
 ```
@@ -56,4 +66,4 @@ func main() {
  - Insert and Erase methods aren't recursive
 
 ## TODO
-Order enumerating methods
+Extend and Improve enumerating methods
