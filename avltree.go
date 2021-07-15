@@ -9,6 +9,8 @@ import (
 // Function type that whould be defined for a key type in the tree
 type Comparator func(a interface{}, b interface{}) int
 
+type Enumerator func(key interface{}, value interface{}) bool
+
 /// Internall stuff
 func max(a int, b int) int {
 	if a > b {
@@ -325,6 +327,43 @@ func (t *AVLTree) Erase(key interface{}) error {
 		return nil
 	}
 	return errors.New("AVLTree: hasn't got key")
+}
+
+func (t *AVLTree) Clear() {
+	t.root = nil
+	t.count = 0
+}
+
+func recursiveEnumAsk(n *node, f Enumerator) {
+	if n.Links[0] != nil {
+		recursiveEnumAsk(n.Links[0], f)
+	}
+	f(n.Key, n.Value)
+	if n.Links[1] != nil {
+		recursiveEnumAsk(n.Links[1], f)
+	}
+}
+
+func recursiveEnumDesc(n *node, f Enumerator) {
+	if n.Links[1] != nil {
+		recursiveEnumDesc(n.Links[1], f)
+	}
+	f(n.Key, n.Value)
+	if n.Links[0] != nil {
+		recursiveEnumDesc(n.Links[0], f)
+	}
+}
+
+func (t *AVLTree) EnumerateAsc(f Enumerator) {
+	if t.root != nil {
+		recursiveEnumAsk(t.root, f)
+	}
+}
+
+func (t *AVLTree) EnumerateDesc(f Enumerator) {
+	if t.root != nil {
+		recursiveEnumDesc(t.root, f)
+	}
 }
 
 func (t *AVLTree) BSTDump(w io.Writer) {

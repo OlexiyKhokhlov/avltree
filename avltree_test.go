@@ -135,3 +135,36 @@ func TestErase(t *testing.T) {
 		})
 	}
 }
+
+func TestEnumerate(t *testing.T) {
+	require := require.New(t)
+
+	tree := NewAVLTree(func(a interface{}, b interface{}) int {
+		first := a.(int)
+		second := b.(int)
+
+		if first == second {
+			return 0
+		}
+		if first < second {
+			return -1
+		}
+		return 1
+	})
+
+	fillTree(tree)
+
+	i := MIN
+	tree.EnumerateAsc(func(k interface{}, v interface{}) bool {
+		require.Equal(k.(int), i)
+		i++
+		return true
+	})
+
+	i = MAX
+	tree.EnumerateDesc(func(k interface{}, v interface{}) bool {
+		require.Equal(k.(int), i)
+		i--
+		return true
+	})
+}
