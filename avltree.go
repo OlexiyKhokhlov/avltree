@@ -1,3 +1,10 @@
+// AVLTree are associative containers that store elements formed by a combination of a key value and a mapped value, following a specific order.
+// In a AVLTree, the key values are generally used to sort and uniquely identify the elements, while the mapped values store the content associated to this key.
+// The types of key and mapped value may differ.
+// Internally, the elements in a AVLTree are always sorted by its key following a specific strict weak ordering criterion
+// indicated by its internal comparison object (of type Comparator).
+// AVLTree containers are generally slower than go map container to access individual elements by their key,
+// but they allow the direct iteration on subsets based on their order.
 package avltree
 
 import (
@@ -9,6 +16,7 @@ import (
 // Function type that whould be defined for a key type in the tree
 type Comparator func(a interface{}, b interface{}) int
 
+// Function type for AVLTree traversal
 type Enumerator func(key interface{}, value interface{}) bool
 
 /// Internall stuff
@@ -281,30 +289,40 @@ func avlErase(root **node, key interface{}, cmp Comparator) *node {
 
 /// Internall stuff END
 
+// AVLTree is a sorted associative container that contains key-value pairs with unique keys.
+// Keys are sorted by using the comparison function `Comparator`.
+// Search, removal, and insertion operations have logarithmic complexity.
 type AVLTree struct {
 	root    *node
 	count   uint
 	compare Comparator
 }
 
+// Creates a new AVLTree instance with the given Comparator
 func NewAVLTree(c Comparator) *AVLTree {
 	return &AVLTree{
 		compare: c,
 	}
 }
 
+// Returns the number of elements
 func (t *AVLTree) Size() uint {
 	return t.count
 }
 
+// Checks whether the container is empty
 func (t *AVLTree) Empty() bool {
 	return t.count == 0
 }
 
+// Checks if the container contains element with specific key
 func (t *AVLTree) Contains(key interface{}) bool {
 	return lookup(t.root, key, t.compare) != nil
 }
 
+// Finds element with specific key
+// Returns an interface{} for associtaed with the key value.
+// When key isn't present returns nil
 func (t *AVLTree) Find(key interface{}) interface{} {
 	n := lookup(t.root, key, t.compare)
 	if n != nil {
@@ -313,6 +331,9 @@ func (t *AVLTree) Find(key interface{}) interface{} {
 	return nil
 }
 
+// Inserts an element with the given key and value.
+// Value can be nil
+// It the given key is already present returns an error
 func (t *AVLTree) Insert(key interface{}, value interface{}) error {
 	if avlInsert(&t.root, key, value, t.compare) {
 		t.count++
@@ -321,6 +342,7 @@ func (t *AVLTree) Insert(key interface{}, value interface{}) error {
 	return errors.New("AVLTree: already contains key")
 }
 
+// Removes a element by the given key
 func (t *AVLTree) Erase(key interface{}) error {
 	if nil != avlErase(&t.root, key, t.compare) {
 		t.count--
@@ -329,6 +351,7 @@ func (t *AVLTree) Erase(key interface{}) error {
 	return errors.New("AVLTree: hasn't got key")
 }
 
+// clears the contents
 func (t *AVLTree) Clear() {
 	t.root = nil
 	t.count = 0
@@ -354,24 +377,29 @@ func recursiveEnumDesc(n *node, f Enumerator) {
 	}
 }
 
+// Calls 'Enumerator' for every Tree's element in ascending order
 func (t *AVLTree) EnumerateAsc(f Enumerator) {
 	if t.root != nil {
 		recursiveEnumAsk(t.root, f)
 	}
 }
 
+// Calls 'Enumerator' for every Tree's element in descending order
 func (t *AVLTree) EnumerateDesc(f Enumerator) {
 	if t.root != nil {
 		recursiveEnumDesc(t.root, f)
 	}
 }
 
+// Writes BST Tree for graphviz visualizator
+// See here https://graphviz.org/ for the details
 func (t *AVLTree) BSTDump(w io.Writer) {
 	io.WriteString(w, "digraph BST {\n")
 	recursiveDump(t.root, w)
 	io.WriteString(w, "}\n")
 }
 
+// Test stuff. You do need to use it
 func (t *AVLTree) CheckHeight(checker heightChecker) {
 	recursiveCheckHeight(t.root, checker)
 }
