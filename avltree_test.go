@@ -167,4 +167,28 @@ func TestEnumerate(t *testing.T) {
 		i--
 		return true
 	})
+
+	i = MIN
+	expected_interrupt := MIN + 10
+	tree.EnumerateAsc(func(k interface{}, v interface{}) bool {
+		require.Equal(k.(int), i)
+		if k.(int) == expected_interrupt {
+			return false
+		}
+		i++
+		return true
+	})
+	require.Equal(i, expected_interrupt)
+
+	i = MAX
+	expected_interrupt = MAX - 10
+	tree.EnumerateDesc(func(k interface{}, v interface{}) bool {
+		require.Equal(k.(int), i)
+		if k.(int) == expected_interrupt {
+			return false
+		}
+		i--
+		return true
+	})
+	require.Equal(i, expected_interrupt)
 }

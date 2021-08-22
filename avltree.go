@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"unsafe"
 )
 
 // Function type that whould be defined for a key type in the tree
@@ -243,7 +244,7 @@ func avlErase(root **node, key interface{}, cmp Comparator) *node {
 	 */
 	treep := path_top
 	targetn := *targetp
-	for true {
+	for {
 		tree := *treep
 		bdir := tree.getDirection(key, cmp)
 		if tree.Links[bdir] == nil {
@@ -357,38 +358,55 @@ func (t *AVLTree) Clear() {
 	t.count = 0
 }
 
-func recursiveEnumAsk(n *node, f Enumerator) {
-	if n.Links[0] != nil {
-		recursiveEnumAsk(n.Links[0], f)
+func enumerateImpl(n *node, dir int, f Enumerator) {
+	if n == nil {
+		return
 	}
-	f(n.Key, n.Value)
-	if n.Links[1] != nil {
-		recursiveEnumAsk(n.Links[1], f)
-	}
-}
 
-func recursiveEnumDesc(n *node, f Enumerator) {
-	if n.Links[1] != nil {
-		recursiveEnumDesc(n.Links[1], f)
-	}
-	f(n.Key, n.Value)
-	if n.Links[0] != nil {
-		recursiveEnumDesc(n.Links[0], f)
+	var stack [64 + 1]*node
+	stack_ptr := 1
+	stack[0] = nil
+
+	for n != nil {
+		switch uintptr(unsafe.Pointer(n)) & 0x03 {
+		case 0:
+			for n != nil {
+				stack[stack_ptr] = (*node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) | 0x01))
+				stack_ptr++
+				n = n.Links[dir]
+			}
+			stack_ptr--
+			n = stack[stack_ptr]
+		case 1:
+			n = (*node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) & ^uintptr(0x03)))
+			if !f(n.Key, n.Value) {
+				return
+			}
+			if n.Links[1-dir] != nil {
+				stack[stack_ptr] = (*node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) | 0x02))
+				stack_ptr++
+				n = n.Links[1-dir]
+			} else {
+				stack_ptr--
+				n = stack[stack_ptr]
+			}
+		case 2:
+			stack_ptr--
+			n = stack[stack_ptr]
+		}
 	}
 }
 
 // Calls 'Enumerator' for every Tree's element in ascending order
+// Enumerator should return `false` for stop enumerating or `true` for continue
 func (t *AVLTree) EnumerateAsc(f Enumerator) {
-	if t.root != nil {
-		recursiveEnumAsk(t.root, f)
-	}
+	enumerateImpl(t.root, 0, f)
 }
 
 // Calls 'Enumerator' for every Tree's element in descending order
+// Enumerator should return `false` for stop enumerating or `true` for continue
 func (t *AVLTree) EnumerateDesc(f Enumerator) {
-	if t.root != nil {
-		recursiveEnumDesc(t.root, f)
-	}
+	enumerateImpl(t.root, 1, f)
 }
 
 // Writes BST Tree for graphviz visualizator
