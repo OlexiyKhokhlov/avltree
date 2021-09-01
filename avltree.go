@@ -349,7 +349,7 @@ func (t *AVLTree) Erase(key interface{}) error {
 		t.count--
 		return nil
 	}
-	return errors.New("AVLTree: hasn't got key")
+	return errors.New("AVLTree: key not found")
 }
 
 // clears the contents
