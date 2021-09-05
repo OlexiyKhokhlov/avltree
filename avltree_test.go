@@ -42,6 +42,54 @@ func TestCreate(t *testing.T) {
 	require.True(empty_tree.Empty())
 }
 
+func TestFindNode(t *testing.T) {
+	require := require.New(t)
+
+	tree := NewAVLTree(func(a interface{}, b interface{}) int {
+		first := a.(int)
+		second := b.(int)
+
+		if first == second {
+			return 0
+		}
+		if first < second {
+			return -1
+		}
+		return 1
+	})
+
+	const (
+		START  = 0
+		FINISH = 100
+		STEP   = 5
+	)
+	for i := START; i <= FINISH; i += STEP {
+		tree.Insert(i, nil)
+	}
+
+	require.Equal(START, tree.FirstNode(ASCENDING).Key)
+	require.Equal(FINISH, tree.FirstNode(DESCENDING).Key)
+
+	require.Nil(tree.FindPrevNode(START))
+	require.Nil(tree.FindNextNode(FINISH))
+
+	for i := START + 1; i <= FINISH; i += STEP {
+		require.Equal(i-1, tree.FindPrevNode(i).Key)   //1
+		require.Equal(i-1, tree.FindPrevNode(i+1).Key) //2
+		require.Equal(i-1, tree.FindPrevNode(i+2).Key) //3
+		require.Equal(i-1, tree.FindPrevNode(i+3).Key) //4
+		require.Equal(i-1, tree.FindPrevNode(i+4).Key) //5
+	}
+
+	for i := FINISH - 1; i >= START; i -= STEP {
+		require.Equal(i+1, tree.FindNextNode(i).Key)   //99
+		require.Equal(i+1, tree.FindNextNode(i-1).Key) //98
+		require.Equal(i+1, tree.FindNextNode(i-2).Key) //97
+		require.Equal(i+1, tree.FindNextNode(i-3).Key) //96
+		require.Equal(i+1, tree.FindNextNode(i-4).Key) //95
+	}
+}
+
 func TestInsert(t *testing.T) {
 	require := require.New(t)
 	require.Less(MIN, MAX)
@@ -68,7 +116,7 @@ func TestInsert(t *testing.T) {
 		size++
 		require.Equal(tree.Size(), size)
 
-		tree.CheckHeight(func(hl int, hr int) {
+		tree.checkHeight(func(hl int, hr int) {
 			require.LessOrEqual(abs(hl-hr), 1)
 		})
 	}
@@ -130,7 +178,7 @@ func TestErase(t *testing.T) {
 		size--
 		require.Equal(tree.Size(), size)
 
-		tree.CheckHeight(func(hl int, hr int) {
+		tree.checkHeight(func(hl int, hr int) {
 			require.LessOrEqual(abs(hl-hr), 1)
 		})
 	}
@@ -155,14 +203,14 @@ func TestEnumerate(t *testing.T) {
 	fillTree(tree)
 
 	i := MIN
-	tree.EnumerateAsc(func(k interface{}, v interface{}) bool {
+	tree.Enumerate(ASCENDING, func(k interface{}, v interface{}) bool {
 		require.Equal(k.(int), i)
 		i++
 		return true
 	})
 
 	i = MAX
-	tree.EnumerateDesc(func(k interface{}, v interface{}) bool {
+	tree.Enumerate(DESCENDING, func(k interface{}, v interface{}) bool {
 		require.Equal(k.(int), i)
 		i--
 		return true
@@ -170,7 +218,7 @@ func TestEnumerate(t *testing.T) {
 
 	i = MIN
 	expected_interrupt := MIN + 10
-	tree.EnumerateAsc(func(k interface{}, v interface{}) bool {
+	tree.Enumerate(ASCENDING, func(k interface{}, v interface{}) bool {
 		require.Equal(k.(int), i)
 		if k.(int) == expected_interrupt {
 			return false
@@ -182,7 +230,7 @@ func TestEnumerate(t *testing.T) {
 
 	i = MAX
 	expected_interrupt = MAX - 10
-	tree.EnumerateDesc(func(k interface{}, v interface{}) bool {
+	tree.Enumerate(DESCENDING, func(k interface{}, v interface{}) bool {
 		require.Equal(k.(int), i)
 		if k.(int) == expected_interrupt {
 			return false
