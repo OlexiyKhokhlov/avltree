@@ -1,3 +1,4 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/OlexiyKhokhlov/avltree.svg)](https://pkg.go.dev/github.com/OlexiyKhokhlov/avltree)
 # AVL Tree Go's module
 
 ## Installation
