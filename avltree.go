@@ -568,8 +568,10 @@ loop:
 					}
 				} else {
 					n = next
+					continue loop
 				}
-			} else if stack_ptr != 0 {
+			}
+			if stack_ptr != 0 {
 				stack_ptr--
 				n = stack[stack_ptr]
 			} else {

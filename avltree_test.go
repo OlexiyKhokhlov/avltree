@@ -333,53 +333,39 @@ func TestEnumerateDiapason(t *testing.T) {
 		return true
 	})
 
-	//0..20
-	i = START
-	right := 20
-	tree.EnumerateDiapason(nil, right, ASCENDING, func(k interface{}, v interface{}) bool {
-		require.True(i >= START && i <= right)
-		require.Equal(i, k.(int))
-		i = i + STEP
-		return true
-	})
+	for i := START; i <= FINISH; i = i + STEP {
+		j := i
+		tree.EnumerateDiapason(i, nil, ASCENDING, func(k interface{}, v interface{}) bool {
+			require.True(j >= i && j <= FINISH)
+			require.Equal(j, k.(int))
+			j = j + STEP
+			return true
+		})
 
-	//20..0
-	i = START
-	right = 21
-	tree.EnumerateDiapason(nil, right, ASCENDING, func(k interface{}, v interface{}) bool {
-		require.True(i >= START && i <= right)
-		require.Equal(i, k.(int))
-		i = i + STEP
-		return true
-	})
+		l := FINISH
+		tree.EnumerateDiapason(l, nil, DESCENDING, func(k interface{}, v interface{}) bool {
+			require.True(l >= i && l <= FINISH)
+			require.Equal(l, k.(int))
+			l = l - STEP
+			return true
+		})
+	}
 
-	//65..100
-	i = 65
-	left := 63
-	tree.EnumerateDiapason(left, nil, ASCENDING, func(k interface{}, v interface{}) bool {
-		require.True(i >= 60 && i <= FINISH)
-		require.Equal(i, k.(int))
-		i = i + STEP
-		return true
-	})
+	for i := START; i <= FINISH; i = i + STEP {
+		j := START
+		tree.EnumerateDiapason(nil, i, ASCENDING, func(k interface{}, v interface{}) bool {
+			require.True(j >= START && j <= i)
+			require.Equal(j, k.(int))
+			j = j + STEP
+			return true
+		})
 
-	//100..65
-	i = 65
-	right = 67
-	tree.EnumerateDiapason(nil, right, DESCENDING, func(k interface{}, v interface{}) bool {
-		require.True(i >= START && i <= right)
-		require.Equal(i, k.(int))
-		i = i - STEP
-		return true
-	})
-
-	//65..0
-	i = 65
-	right = 67
-	tree.EnumerateDiapason(nil, right, DESCENDING, func(k interface{}, v interface{}) bool {
-		require.True(i >= START && i <= right)
-		require.Equal(i, k.(int))
-		i = i - STEP
-		return true
-	})
+		l := i
+		tree.EnumerateDiapason(nil, i, DESCENDING, func(k interface{}, v interface{}) bool {
+			require.True(l >= START && l <= i)
+			require.Equal(l, k.(int))
+			l = l - STEP
+			return true
+		})
+	}
 }
