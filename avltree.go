@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"math/bits"
-	"unsafe"
 )
 
 // Function type that whould be defined for a key type in the tree
@@ -30,8 +29,8 @@ func max(a int, b int) int {
 }
 
 type Node struct {
-	Key     interface{}
-	Value   interface{}
+	key     interface{}
+	value   interface{}
 	links   [2]*Node
 	balance int
 }
@@ -44,7 +43,7 @@ func getHeight(n *Node) int {
 }
 
 func (n *Node) getDirection(key interface{}, cmp Comparator) int {
-	if cmp(key, n.Key) == -1 {
+	if cmp(key, n.key) == -1 {
 		return 0
 	}
 	return 1
@@ -56,12 +55,12 @@ func (n *Node) avlIsBalanced() bool {
 
 func recursiveDump(n *Node, w io.Writer) {
 	if n != nil {
-		io.WriteString(w, fmt.Sprintf("\"%v\"-> { ", n.Key))
+		io.WriteString(w, fmt.Sprintf("\"%v\"-> { ", n.key))
 		if n.links[0] != nil {
-			io.WriteString(w, fmt.Sprintf("\"%v\" ", n.links[0].Key))
+			io.WriteString(w, fmt.Sprintf("\"%v\" ", n.links[0].key))
 		}
 		if n.links[1] != nil {
-			io.WriteString(w, fmt.Sprintf("\"%v\" ", n.links[1].Key))
+			io.WriteString(w, fmt.Sprintf("\"%v\" ", n.links[1].key))
 		}
 		io.WriteString(w, "}\n")
 		recursiveDump(n.links[0], w)
@@ -151,7 +150,7 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 	node_ptr := root
 	path_top := root
 	n := *root
-	for n != nil && cmp(key, n.Key) != 0 {
+	for n != nil && cmp(key, n.key) != 0 {
 		if !n.avlIsBalanced() {
 			path_top = node_ptr
 		}
@@ -163,8 +162,8 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 		return false //already has the key
 	}
 	new_node := &Node{
-		Key:     key,
-		Value:   value,
+		key:     key,
+		value:   value,
 		balance: -1,
 	}
 	*node_ptr = new_node
@@ -190,7 +189,7 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 				 * the third step as NEITHER
 				 */
 				path = path.links[first].links[second]
-				if cmp(key, path.Key) == 0 {
+				if cmp(key, path.key) == 0 {
 					third = -1
 				} else {
 					third = path.getDirection(key, cmp)
@@ -201,7 +200,7 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 	}
 
 	//Stage 3. Update balance info in the each node
-	for path != nil && cmp(key, path.Key) != 0 {
+	for path != nil && cmp(key, path.key) != 0 {
 		direction := path.getDirection(key, cmp)
 		path.balance = direction
 		path = path.links[direction]
@@ -219,7 +218,7 @@ func avlErase(root **Node, key interface{}, cmp Comparator) *Node {
 
 	for n != nil {
 		dir = n.getDirection(key, cmp)
-		if cmp(n.Key, key) == 0 {
+		if cmp(n.key, key) == 0 {
 			targetp = nodep
 		} else if n.links[dir] == nil {
 			break
@@ -289,7 +288,7 @@ func avlErase(root **Node, key interface{}, cmp Comparator) *Node {
 func (t *AVLTree) findEdgeNodeImpl(key interface{}, dir int) *Node {
 	var n, candidate *Node = t.root, nil
 	for n != nil {
-		cmp_res := t.compare(key, n.Key)
+		cmp_res := t.compare(key, n.key)
 		if cmp_res == (2*dir - 1) {
 			n = n.links[dir]
 			continue
@@ -319,7 +318,7 @@ func edgeNodeImpl(n *Node, dir int) *Node {
 func (t *AVLTree) lookupNode(key interface{}) *Node {
 	n := t.root
 	for n != nil {
-		cmp := t.compare(key, n.Key)
+		cmp := t.compare(key, n.key)
 		if cmp == 0 {
 			return n
 		} else if cmp == -1 {
@@ -370,7 +369,7 @@ func (t *AVLTree) Contains(key interface{}) bool {
 func (t *AVLTree) Find(key interface{}) interface{} {
 	n := t.lookupNode(key)
 	if n != nil {
-		return n.Value
+		return n.value
 	}
 	return nil
 }
@@ -380,7 +379,7 @@ func (t *AVLTree) Find(key interface{}) interface{} {
 func (t *AVLTree) FindPrevElement(key interface{}) (interface{}, interface{}) {
 	node := t.findEdgeNodeImpl(key, 0)
 	if node != nil {
-		return node.Key, node.Value
+		return node.key, node.value
 	}
 	return nil, nil
 }
@@ -390,7 +389,7 @@ func (t *AVLTree) FindPrevElement(key interface{}) (interface{}, interface{}) {
 func (t *AVLTree) FindNextElement(key interface{}) (interface{}, interface{}) {
 	node := t.findEdgeNodeImpl(key, 1)
 	if node != nil {
-		return node.Key, node.Value
+		return node.key, node.value
 	}
 	return nil, nil
 }
@@ -423,7 +422,7 @@ func (t *AVLTree) First() (interface{}, interface{}) {
 	if node == nil {
 		return nil, nil
 	}
-	return node.Key, node.Value
+	return node.key, node.value
 }
 
 // Returns key, value interfaces for the last tree node
@@ -433,7 +432,7 @@ func (t *AVLTree) Last() (interface{}, interface{}) {
 	if node == nil {
 		return nil, nil
 	}
-	return node.Key, node.Value
+	return node.key, node.value
 }
 
 // Removes a element by the given key
@@ -462,30 +461,31 @@ func (t *AVLTree) Enumerate(order EnumerationOrder, f Enumerator) {
 
 	stack := make([]*Node, bits.Len(t.count))
 	stack_ptr := 0
-loop:
+	going_down := true
 	for {
-		switch uintptr(unsafe.Pointer(n)) & 0x01 {
-		case 0: //Going down as deep as possible
+		if going_down {
+			//Going down as deep as possible
 			for ; n.links[order] != nil; n = n.links[order] {
-				stack[stack_ptr] = (*Node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) | 0x01))
+				stack[stack_ptr] = n
 				stack_ptr++
 			}
-			fallthrough
-		case 1: //Going first up
-			n = (*Node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) & ^uintptr(0x01)))
-			// Visit node
-			if !f(n.Key, n.Value) {
-				return
-			}
-			// Going down via second link or return up
-			if next := n.links[1-order]; next != nil {
-				n = next
-			} else if stack_ptr != 0 {
-				stack_ptr--
-				n = stack[stack_ptr]
-			} else {
-				break loop
-			}
+		}
+
+		// Visit node
+		if !f(n.key, n.value) {
+			return
+		}
+
+		// Going down via second link or return up
+		if next := n.links[1-order]; next != nil {
+			n = next
+			going_down = true
+		} else if stack_ptr != 0 {
+			stack_ptr--
+			n = stack[stack_ptr]
+			going_down = false
+		} else {
+			break
 		}
 	}
 }
@@ -509,11 +509,11 @@ func (t *AVLTree) EnumerateDiapason(left, right interface{}, order EnumerationOr
 	//find common sub-tree
 	n := t.root
 	for {
-		if left != nil && t.compare(n.Key, left) < 0 {
+		if left != nil && t.compare(n.key, left) < 0 {
 			n = n.links[1]
 			continue
 		}
-		if right != nil && t.compare(n.Key, right) > 0 {
+		if right != nil && t.compare(n.key, right) > 0 {
 			n = n.links[0]
 			continue
 		}
@@ -523,20 +523,22 @@ func (t *AVLTree) EnumerateDiapason(left, right interface{}, order EnumerationOr
 	fences := [2]interface{}{left, right}
 	stack := make([]*Node, bits.Len(t.count))
 	stack_ptr := 0
+	going_down := true
 loop:
 	for {
-		switch uintptr(unsafe.Pointer(n)) & 0x01 {
-		case 0: //Going down
+		if going_down {
+			//Going down as deep as possible
 			for {
-				if fences[order] != nil && (1-2*int(order))*t.compare(n.Key, fences[order]) < 0 {
+				if fences[order] != nil && (1-2*int(order))*t.compare(n.key, fences[order]) < 0 {
 					// Try go down via second link
-					if next := n.links[1-order]; next != nil && (fences[1-order] == nil || (fences[1-order] != nil && (1-2*int(order))*t.compare(next.Key, fences[1-order]) <= 0)) {
+					if next := n.links[1-order]; next != nil && (fences[1-order] == nil || (fences[1-order] != nil && (1-2*int(order))*t.compare(next.key, fences[1-order]) <= 0)) {
 						n = next
 						continue
 					} else if stack_ptr != 0 {
 						//Or return up
 						stack_ptr--
 						n = stack[stack_ptr]
+						going_down = false
 						continue loop
 					} else {
 						break loop
@@ -545,38 +547,39 @@ loop:
 					if n.links[order] == nil {
 						break
 					}
-					stack[stack_ptr] = (*Node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) | 0x01))
+					stack[stack_ptr] = n
 					stack_ptr++
 					n = n.links[order]
 				}
 			}
-			fallthrough
-		case 1: //Going first up
-			n = (*Node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) & ^uintptr(0x01)))
-			// Visit node
-			if !f(n.Key, n.Value) {
-				return nil
-			}
-			// Going down via second link
-			if next := n.links[1-order]; next != nil {
-				if fences[1-order] != nil && (1-2*int(order))*t.compare(next.Key, fences[1-order]) >= 0 {
-					for ; next != nil; next = next.links[order] {
-						if (1-2*int(order))*t.compare(next.Key, fences[1-order]) <= 0 {
-							n = next
-							continue loop
-						}
+		}
+
+		// Visit node
+		if !f(n.key, n.value) {
+			return nil
+		}
+		// Going down via second link
+		if next := n.links[1-order]; next != nil {
+			if fences[1-order] != nil && (1-2*int(order))*t.compare(next.key, fences[1-order]) >= 0 {
+				for ; next != nil; next = next.links[order] {
+					if (1-2*int(order))*t.compare(next.key, fences[1-order]) <= 0 {
+						n = next
+						going_down = true
+						continue loop
 					}
-				} else {
-					n = next
-					continue loop
 				}
-			}
-			if stack_ptr != 0 {
-				stack_ptr--
-				n = stack[stack_ptr]
 			} else {
-				break loop
+				n = next
+				going_down = true
+				continue
 			}
+		}
+		if stack_ptr != 0 {
+			stack_ptr--
+			n = stack[stack_ptr]
+			going_down = false
+		} else {
+			break
 		}
 	}
 	return nil
