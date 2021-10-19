@@ -1,4 +1,4 @@
-module avltree
+module github.com/OlexiyKhokhlov/avltree
 
 go 1.16
 
