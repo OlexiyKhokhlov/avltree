@@ -1,4 +1,6 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/OlexiyKhokhlov/avltree.svg)](https://pkg.go.dev/github.com/OlexiyKhokhlov/avltree)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/OlexiyKhokhlov/avltree)](https://goreportcard.com/report/github.com/OlexiyKhokhlov/avltree)
 # AVL Tree Go's module
 
 ## Installation

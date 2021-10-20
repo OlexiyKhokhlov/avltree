@@ -25,7 +25,7 @@ func fillTree(tree *AVLTree) {
 func TestCreate(t *testing.T) {
 	require := require.New(t)
 
-	empty_tree := NewAVLTree(func(a interface{}, b interface{}) int {
+	emptyTree := NewAVLTree(func(a interface{}, b interface{}) int {
 		first := a.(int)
 		second := b.(int)
 
@@ -38,8 +38,8 @@ func TestCreate(t *testing.T) {
 		return 1
 	})
 
-	require.Equal(uint(0), empty_tree.Size())
-	require.True(empty_tree.Empty())
+	require.Equal(uint(0), emptyTree.Size())
+	require.True(emptyTree.Empty())
 }
 
 func TestInsert(t *testing.T) {
@@ -230,28 +230,28 @@ func TestEnumerate(t *testing.T) {
 	})
 
 	i = MIN
-	expected_interrupt := MIN + 10
+	expectedInterrupt := MIN + 10
 	tree.Enumerate(ASCENDING, func(k interface{}, v interface{}) bool {
 		require.Equal(i, k.(int))
-		if k.(int) == expected_interrupt {
+		if k.(int) == expectedInterrupt {
 			return false
 		}
 		i++
 		return true
 	})
-	require.Equal(i, expected_interrupt)
+	require.Equal(i, expectedInterrupt)
 
 	i = MAX
-	expected_interrupt = MAX - 10
+	expectedInterrupt = MAX - 10
 	tree.Enumerate(DESCENDING, func(k interface{}, v interface{}) bool {
 		require.Equal(i, k.(int))
-		if k.(int) == expected_interrupt {
+		if k.(int) == expectedInterrupt {
 			return false
 		}
 		i--
 		return true
 	})
-	require.Equal(expected_interrupt, i)
+	require.Equal(expectedInterrupt, i)
 }
 
 func TestEnumerateDiapason(t *testing.T) {

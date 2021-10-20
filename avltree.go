@@ -1,4 +1,4 @@
-// AVLTree are associative containers that store elements formed by a combination of a key value and a mapped value, following a specific order.
+// Package avltree provides associative container that store elements formed by a combination of a key value and a mapped value, following a specific order.
 // In a AVLTree, the key values are generally used to sort and uniquely identify the elements, while the mapped values store the content associated to this key.
 // The types of key and mapped value may differ.
 // Internally, the elements in a AVLTree are always sorted by its key following a specific strict weak ordering criterion
@@ -14,10 +14,10 @@ import (
 	"math/bits"
 )
 
-// Function type that whould be defined for a key type in the tree
+// Comparator is a function type that whould be defined for a key type in the tree
 type Comparator func(a interface{}, b interface{}) int
 
-// Function type for AVLTree traversal
+// Enumerator is a function type for AVLTree enumeration. See Enumerate and EnumerateDiapason
 type Enumerator func(key interface{}, value interface{}) bool
 
 /// Internall stuff
@@ -28,32 +28,32 @@ func max(a int, b int) int {
 	return b
 }
 
-type Node struct {
+type node struct {
 	key     interface{}
 	value   interface{}
-	links   [2]*Node
+	links   [2]*node
 	balance int
 }
 
-func getHeight(n *Node) int {
+func getHeight(n *node) int {
 	if n == nil {
 		return 0
 	}
 	return max(getHeight(n.links[0]), getHeight(n.links[1])) + 1
 }
 
-func (n *Node) getDirection(key interface{}, cmp Comparator) int {
+func (n *node) getDirection(key interface{}, cmp Comparator) int {
 	if cmp(key, n.key) == -1 {
 		return 0
 	}
 	return 1
 }
 
-func (n *Node) avlIsBalanced() bool {
+func (n *node) avlIsBalanced() bool {
 	return n.balance < 0
 }
 
-func recursiveDump(n *Node, w io.Writer) {
+func recursiveDump(n *node, w io.Writer) {
 	if n != nil {
 		io.WriteString(w, fmt.Sprintf("\"%v\"-> { ", n.key))
 		if n.links[0] != nil {
@@ -70,7 +70,7 @@ func recursiveDump(n *Node, w io.Writer) {
 
 type heightChecker func(lh int, rh int)
 
-func recursiveCheckHeight(n *Node, checker heightChecker) {
+func recursiveCheckHeight(n *node, checker heightChecker) {
 	if n == nil {
 		return
 	}
@@ -83,93 +83,93 @@ func (t *AVLTree) checkHeight(checker heightChecker) {
 	recursiveCheckHeight(t.root, checker)
 }
 
-func rotate2(path_top **Node, dir int) *Node {
-	node_B := *path_top
-	node_D := node_B.links[dir]
-	node_C := node_D.links[1-dir]
-	node_E := node_D.links[dir]
+func rotate2(pathTop **node, dir int) *node {
+	nodeB := *pathTop
+	nodeD := nodeB.links[dir]
+	nodeC := nodeD.links[1-dir]
+	nodeE := nodeD.links[dir]
 
-	*path_top = node_D
-	node_D.links[1-dir] = node_B
-	node_B.links[dir] = node_C
+	*pathTop = nodeD
+	nodeD.links[1-dir] = nodeB
+	nodeB.links[dir] = nodeC
 
-	return node_E
+	return nodeE
 }
 
-func rotate3(path_top **Node, dir int) {
-	node_B := *path_top
-	node_F := node_B.links[dir]
-	node_D := node_F.links[1-dir]
+func rotate3(pathTop **node, dir int) {
+	nodeB := *pathTop
+	nodeF := nodeB.links[dir]
+	nodeD := nodeF.links[1-dir]
 	/* note: C and E can be nil */
-	node_C := node_D.links[1-dir]
-	node_E := node_D.links[dir]
-	*path_top = node_D
-	node_D.links[1-dir] = node_B
-	node_D.links[dir] = node_F
-	node_B.links[dir] = node_C
-	node_F.links[1-dir] = node_E
+	nodeC := nodeD.links[1-dir]
+	nodeE := nodeD.links[dir]
+	*pathTop = nodeD
+	nodeD.links[1-dir] = nodeB
+	nodeD.links[dir] = nodeF
+	nodeB.links[dir] = nodeC
+	nodeF.links[1-dir] = nodeE
 }
 
-func avlRotate2(path_top **Node, dir int) *Node {
-	(*path_top).balance = -1
-	result := rotate2(path_top, dir)
-	(*path_top).balance = -1
+func avlRotate2(pathTop **node, dir int) *node {
+	(*pathTop).balance = -1
+	result := rotate2(pathTop, dir)
+	(*pathTop).balance = -1
 	return result
 }
 
-func avlRotate3(path_top **Node, dir int, third int) *Node {
-	node_B := *path_top
-	node_F := node_B.links[dir]
-	node_D := node_F.links[1-dir]
+func avlRotate3(pathTop **node, dir int, third int) *node {
+	nodeB := *pathTop
+	nodeF := nodeB.links[dir]
+	nodeD := nodeF.links[1-dir]
 	/* note: C and E can be nil */
-	node_C := node_D.links[1-dir]
-	node_E := node_D.links[dir]
+	nodeC := nodeD.links[1-dir]
+	nodeE := nodeD.links[dir]
 
-	node_B.balance = -1
-	node_F.balance = -1
-	node_D.balance = -1
+	nodeB.balance = -1
+	nodeF.balance = -1
+	nodeD.balance = -1
 
-	rotate3(path_top, dir)
+	rotate3(pathTop, dir)
 
 	if third == -1 {
 		return nil
 	} else if third == dir {
 		/* E holds the insertion so B is unbalanced */
-		node_B.balance = 1 - dir
-		return node_E
+		nodeB.balance = 1 - dir
+		return nodeE
 	} else {
 		/* C holds the insertion so F is unbalanced */
-		node_F.balance = dir
-		return node_C
+		nodeF.balance = dir
+		return nodeC
 	}
 }
 
-func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) bool {
+func avlInsert(root **node, key interface{}, value interface{}, cmp Comparator) bool {
 	//Stage 1. Find a position in the tree and link a new node
 	// by the way find and remember a node where the tree starts to be unbalanced.
-	node_ptr := root
-	path_top := root
+	nodePtr := root
+	pathTop := root
 	n := *root
 	for n != nil && cmp(key, n.key) != 0 {
 		if !n.avlIsBalanced() {
-			path_top = node_ptr
+			pathTop = nodePtr
 		}
 		dir := n.getDirection(key, cmp)
-		node_ptr = &(n.links[dir])
-		n = *node_ptr
+		nodePtr = &(n.links[dir])
+		n = *nodePtr
 	}
 	if n != nil {
 		return false //already has the key
 	}
-	new_node := &Node{
+	newNode := &node{
 		key:     key,
 		value:   value,
 		balance: -1,
 	}
-	*node_ptr = new_node
+	*nodePtr = newNode
 
 	//Stage 2. Rebalance
-	path := *path_top
+	path := *pathTop
 	var first, second, third int
 	if !path.avlIsBalanced() {
 		first = path.getDirection(key, cmp)
@@ -181,7 +181,7 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 			second = path.links[first].getDirection(key, cmp)
 			if first == second {
 				/* just a two-point rotate */
-				path = avlRotate2(path_top, first)
+				path = avlRotate2(pathTop, first)
 			} else {
 				/* fine details of the 3 point rotate depend on the third step.
 				 * However there may not be a third step, if the third point of the
@@ -194,7 +194,7 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 				} else {
 					third = path.getDirection(key, cmp)
 				}
-				path = avlRotate3(path_top, first, third)
+				path = avlRotate3(pathTop, first, third)
 			}
 		}
 	}
@@ -208,12 +208,12 @@ func avlInsert(root **Node, key interface{}, value interface{}, cmp Comparator) 
 	return true
 }
 
-func avlErase(root **Node, key interface{}, cmp Comparator) *Node {
+func avlErase(root **node, key interface{}, cmp Comparator) *node {
 	//Stage 1. lookup for the node that contain a key
 	n := *root
 	nodep := root
-	path_top := root
-	var targetp **Node
+	pathTop := root
+	var targetp **node
 	var dir int
 
 	for n != nil {
@@ -223,7 +223,7 @@ func avlErase(root **Node, key interface{}, cmp Comparator) *Node {
 		} else if n.links[dir] == nil {
 			break
 		} else if n.avlIsBalanced() || (n.balance == (1-dir) && n.links[1-dir].avlIsBalanced()) {
-			path_top = nodep
+			pathTop = nodep
 		}
 		nodep = &n.links[dir]
 		n = *nodep
@@ -239,7 +239,7 @@ func avlErase(root **Node, key interface{}, cmp Comparator) *Node {
 	 * excluding the last, will have a subtree grow
 	 * and need rebalancing
 	 */
-	treep := path_top
+	treep := pathTop
 	targetn := *targetp
 	for {
 		tree := *treep
@@ -285,20 +285,19 @@ func avlErase(root **Node, key interface{}, cmp Comparator) *Node {
 	return targetn
 }
 
-func (t *AVLTree) findEdgeNodeImpl(key interface{}, dir int) *Node {
-	var n, candidate *Node = t.root, nil
+func (t *AVLTree) findEdgeNodeImpl(key interface{}, dir int) *node {
+	var n, candidate *node = t.root, nil
 	for n != nil {
-		cmp_res := t.compare(key, n.key)
-		if cmp_res == (2*dir - 1) {
+		cmpRes := t.compare(key, n.key)
+		if cmpRes == (2*dir - 1) {
 			n = n.links[dir]
 			continue
 		}
-		if cmp_res == (1 - 2*dir) {
+		if cmpRes == (1 - 2*dir) {
 			candidate = n
 			n = n.links[1-dir]
 			continue
 		}
-		// cmp_res == 0
 		if n.links[dir] == nil {
 			return candidate
 		}
@@ -308,14 +307,14 @@ func (t *AVLTree) findEdgeNodeImpl(key interface{}, dir int) *Node {
 	return candidate
 }
 
-func edgeNodeImpl(n *Node, dir int) *Node {
+func edgeNodeImpl(n *node, dir int) *node {
 	for n.links[dir] != nil {
 		n = n.links[dir]
 	}
 	return n
 }
 
-func (t *AVLTree) lookupNode(key interface{}) *Node {
+func (t *AVLTree) lookupNode(key interface{}) *node {
 	n := t.root
 	for n != nil {
 		cmp := t.compare(key, n.key)
@@ -336,34 +335,34 @@ func (t *AVLTree) lookupNode(key interface{}) *Node {
 // Keys are sorted by using the comparison function `Comparator`.
 // Search, removal, and insertion operations have logarithmic complexity.
 type AVLTree struct {
-	root    *Node
+	root    *node
 	count   uint
 	compare Comparator
 }
 
-// Creates a new AVLTree instance with the given Comparator
+// NewAVLTree creates a new AVLTree instance with the given Comparator
 func NewAVLTree(c Comparator) *AVLTree {
 	return &AVLTree{
 		compare: c,
 	}
 }
 
-// Returns the number of elements
+// Size returns the number of elements
 func (t *AVLTree) Size() uint {
 	return t.count
 }
 
-// Checks whether the container is empty
+// Empty checks whether the container is empty
 func (t *AVLTree) Empty() bool {
 	return t.count == 0
 }
 
-// Checks if the container contains element with specific key
+// Contains checks if the container contains element with the specific key
 func (t *AVLTree) Contains(key interface{}) bool {
 	return t.lookupNode(key) != nil
 }
 
-// Finds element with specific key
+// Find finds element with specific key
 // Returns an interface{} for associated with the key value.
 // When key isn't present returns nil
 func (t *AVLTree) Find(key interface{}) interface{} {
@@ -374,7 +373,7 @@ func (t *AVLTree) Find(key interface{}) interface{} {
 	return nil
 }
 
-// Returns key and value that is nearest to the given key and lesser then given key.
+// FindPrevElement returns a key and a value that is nearest to the given key and lesser then given key.
 // Can return (nil, nil) when no such node in the tree
 func (t *AVLTree) FindPrevElement(key interface{}) (interface{}, interface{}) {
 	node := t.findEdgeNodeImpl(key, 0)
@@ -384,7 +383,7 @@ func (t *AVLTree) FindPrevElement(key interface{}) (interface{}, interface{}) {
 	return nil, nil
 }
 
-// Returns key and value with the key that is nearest to the given key and greater then given key.
+// FindNextElement returns a key and a value with the key that is nearest to the given key and greater then given key.
 // Can return (nil, nil) when no such node in the tree
 func (t *AVLTree) FindNextElement(key interface{}) (interface{}, interface{}) {
 	node := t.findEdgeNodeImpl(key, 1)
@@ -394,7 +393,7 @@ func (t *AVLTree) FindNextElement(key interface{}) (interface{}, interface{}) {
 	return nil, nil
 }
 
-// Inserts an element with the given key and value.
+// Insert inserts an element with the given key and value.
 // Value can be nil
 // It the given key is already present returns an error
 func (t *AVLTree) Insert(key interface{}, value interface{}) error {
@@ -405,17 +404,19 @@ func (t *AVLTree) Insert(key interface{}, value interface{}) error {
 	return errors.New("AVLTree: already contains key")
 }
 
-// This a type of enumeration for Enumerate, EnumerateLowerBound, EnumerateUpperBound methods
+// EnumerationOrder  a type of enumeration for Enumerate, EnumerateDiapason methods
 // There are two acceptable values -  ASCENDING and DESCENDING. All other values provides a runtime error.
-// Unfortunately Go doesn't provide any possibiltiy to check wrong values for that in the compile time. So be carefull here!
+// Unfortunately Go doesn't provide any possibiltiy to check wrong values for that in the compile time. So be careful here!
 type EnumerationOrder int
 
 const (
-	ASCENDING  = 0
+	//ASCENDING is an id for Enumerate and EnumerateDiapason methods
+	ASCENDING = 0
+	//DESCENDING is an id for Enumerate and EnumerateDiapason methods
 	DESCENDING = 1
 )
 
-// Returns key, value interfaces for the first tree node
+// First returns key, value interfaces for the first tree node
 // Returns (nil, nil) when a tree is empty
 func (t *AVLTree) First() (interface{}, interface{}) {
 	node := edgeNodeImpl(t.root, ASCENDING)
@@ -425,7 +426,7 @@ func (t *AVLTree) First() (interface{}, interface{}) {
 	return node.key, node.value
 }
 
-// Returns key, value interfaces for the last tree node
+// Last returns key, value interfaces for the last tree node
 // Returns (nil, nil) when a tree is empty
 func (t *AVLTree) Last() (interface{}, interface{}) {
 	node := edgeNodeImpl(t.root, DESCENDING)
@@ -435,7 +436,7 @@ func (t *AVLTree) Last() (interface{}, interface{}) {
 	return node.key, node.value
 }
 
-// Removes a element by the given key
+// Erase removes an element by the given key
 func (t *AVLTree) Erase(key interface{}) error {
 	if nil != avlErase(&t.root, key, t.compare) {
 		t.count--
@@ -444,13 +445,13 @@ func (t *AVLTree) Erase(key interface{}) error {
 	return errors.New("AVLTree: key not found")
 }
 
-// clears the contents
+// Clear clears and removes all tree content
 func (t *AVLTree) Clear() {
 	t.root = nil
 	t.count = 0
 }
 
-// Calls 'Enumerator' for every Tree's element.
+// Enumerate calls 'Enumerator' for every Tree's element.
 // Enumeration order can be one from ASCENDING or DESCENDING
 // Enumerator should return `false` for stop enumerating or `true` for continue
 func (t *AVLTree) Enumerate(order EnumerationOrder, f Enumerator) {
@@ -459,15 +460,15 @@ func (t *AVLTree) Enumerate(order EnumerationOrder, f Enumerator) {
 		return
 	}
 
-	stack := make([]*Node, bits.Len(t.count))
-	stack_ptr := 0
-	going_down := true
+	stack := make([]*node, bits.Len(t.count))
+	stackPtr := 0
+	goingDown := true
 	for {
-		if going_down {
+		if goingDown {
 			//Going down as deep as possible
 			for ; n.links[order] != nil; n = n.links[order] {
-				stack[stack_ptr] = n
-				stack_ptr++
+				stack[stackPtr] = n
+				stackPtr++
 			}
 		}
 
@@ -479,18 +480,18 @@ func (t *AVLTree) Enumerate(order EnumerationOrder, f Enumerator) {
 		// Going down via second link or return up
 		if next := n.links[1-order]; next != nil {
 			n = next
-			going_down = true
-		} else if stack_ptr != 0 {
-			stack_ptr--
-			n = stack[stack_ptr]
-			going_down = false
+			goingDown = true
+		} else if stackPtr != 0 {
+			stackPtr--
+			n = stack[stackPtr]
+			goingDown = false
 		} else {
 			break
 		}
 	}
 }
 
-// Works like Enumerate but has two additional args - left and right
+// EnumerateDiapason works like Enumerate but has two additional args - left and right
 // These are left and right borders for enumeration.
 // Enumeration includes left and right borders.
 // Note: left must be always lesser than right. Otherwise returns error
@@ -521,12 +522,12 @@ func (t *AVLTree) EnumerateDiapason(left, right interface{}, order EnumerationOr
 	}
 
 	fences := [2]interface{}{left, right}
-	stack := make([]*Node, bits.Len(t.count))
-	stack_ptr := 0
-	going_down := true
+	stack := make([]*node, bits.Len(t.count))
+	stackPtr := 0
+	goingDown := true
 loop:
 	for {
-		if going_down {
+		if goingDown {
 			//Going down as deep as possible
 			for {
 				if fences[order] != nil && (1-2*int(order))*t.compare(n.key, fences[order]) < 0 {
@@ -534,11 +535,11 @@ loop:
 					if next := n.links[1-order]; next != nil && (fences[1-order] == nil || (fences[1-order] != nil && (1-2*int(order))*t.compare(next.key, fences[1-order]) <= 0)) {
 						n = next
 						continue
-					} else if stack_ptr != 0 {
+					} else if stackPtr != 0 {
 						//Or return up
-						stack_ptr--
-						n = stack[stack_ptr]
-						going_down = false
+						stackPtr--
+						n = stack[stackPtr]
+						goingDown = false
 						continue loop
 					} else {
 						break loop
@@ -547,8 +548,8 @@ loop:
 					if n.links[order] == nil {
 						break
 					}
-					stack[stack_ptr] = n
-					stack_ptr++
+					stack[stackPtr] = n
+					stackPtr++
 					n = n.links[order]
 				}
 			}
@@ -564,20 +565,20 @@ loop:
 				for ; next != nil; next = next.links[order] {
 					if (1-2*int(order))*t.compare(next.key, fences[1-order]) <= 0 {
 						n = next
-						going_down = true
+						goingDown = true
 						continue loop
 					}
 				}
 			} else {
 				n = next
-				going_down = true
+				goingDown = true
 				continue
 			}
 		}
-		if stack_ptr != 0 {
-			stack_ptr--
-			n = stack[stack_ptr]
-			going_down = false
+		if stackPtr != 0 {
+			stackPtr--
+			n = stack[stackPtr]
+			goingDown = false
 		} else {
 			break
 		}
@@ -585,7 +586,7 @@ loop:
 	return nil
 }
 
-// Writes BST Tree in graphviz digraph textual format
+// BSTDump writes a Tree in graphviz digraph textual format
 // See here https://graphviz.org/ for the details
 func (t *AVLTree) BSTDump(w io.Writer) {
 	io.WriteString(w, "digraph BST {\n")
