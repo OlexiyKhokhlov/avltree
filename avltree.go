@@ -460,7 +460,9 @@ func (t *AVLTree) Enumerate(order EnumerationOrder, f Enumerator) {
 		return
 	}
 
-	stack := make([]*node, bits.Len(t.count))
+	max_height := bits.Len(t.count)
+	max_height += max_height / 2
+	stack := make([]*node, max_height)
 	stackPtr := 0
 	goingDown := true
 	for {
@@ -522,7 +524,9 @@ func (t *AVLTree) EnumerateDiapason(left, right interface{}, order EnumerationOr
 	}
 
 	fences := [2]interface{}{left, right}
-	stack := make([]*node, bits.Len(t.count))
+	max_height := bits.Len(t.count)
+	max_height += max_height / 2
+	stack := make([]*node, max_height)
 	stackPtr := 0
 	goingDown := true
 loop:

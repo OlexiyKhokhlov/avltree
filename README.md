@@ -12,7 +12,7 @@ This module tries to fix it!
 
 ## Internal details
 Ordered containsers usually based on [RB-Tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree). But it uses [AVL Tree](https://en.wikipedia.org/wiki/AVL_tree). There are a several reasons for that:
-+ AVL-Tree always provides ideally-balanced tree.
++ AVL-Tree always provides more balanced tree.
 + RB-Tree balancer is really lame in the inserting of ordered sequences.
 + RB-Tree is more popular so I don't want to implement one more of that.
 

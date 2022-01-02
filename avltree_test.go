@@ -369,3 +369,39 @@ func TestEnumerateDiapason(t *testing.T) {
 		})
 	}
 }
+
+func TestMaxHeight(t *testing.T) {
+	require := require.New(t)
+
+	tree := NewAVLTree(func(a interface{}, b interface{}) int {
+		first := a.(int)
+		second := b.(int)
+
+		if first == second {
+			return 0
+		}
+		if first < second {
+			return -1
+		}
+		return 1
+	})
+
+	data := []int{33,
+		20, 46,
+		12, 28, 41, 51,
+		07, 17, 25, 31, 38, 44, 49, 53,
+		04, 10, 15, 19, 23, 27, 30, 32, 36, 40, 43, 45, 48, 50, 52,
+		2, 6, 9, 11, 14, 16, 18, 22, 24, 26, 29, 35, 37, 39, 42, 47,
+		1, 3, 5, 8, 13, 21, 34,
+		0}
+	for i := range data {
+		tree.Insert(i, nil)
+	}
+
+	i := 0
+	tree.Enumerate(ASCENDING, func(k interface{}, v interface{}) bool {
+		require.Equal(i, k.(int))
+		i++
+		return true
+	})
+}
