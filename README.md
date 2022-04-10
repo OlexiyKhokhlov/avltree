@@ -1,6 +1,6 @@
-[![Go Reference](https://pkg.go.dev/badge/github.com/OlexiyKhokhlov/avltree.svg)](https://pkg.go.dev/github.com/OlexiyKhokhlov/avltree/v2)
+[![Go Reference](https://pkg.go.dev/badge/gopkg.in/OlexiyKhokhlov/avltree.v2.svg)](https://pkg.go.dev/gopkg.in/OlexiyKhokhlov/avltree.v2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Report Card](https://goreportcard.com/badge/github.com/OlexiyKhokhlov/avltree/v2)](https://goreportcard.com/report/github.com/OlexiyKhokhlov/avltree/v2)
+[![Go Report Card](https://goreportcard.com/badge/gopkg.in/OlexiyKhokhlov/avltree.v2)](https://goreportcard.com/report/gopkg.in/OlexiyKhokhlov/avltree.v2)
 [![Go version](https://img.shields.io/badge/go-v1.18-blue)](https://golang.org/dl/#stable)
 # AVL Tree Go's module
 
